@@ -35,6 +35,8 @@ npm run dev
 
 `predev` migrates and seeds the local database first. Then navigate to the [website](http://localhost:4321) to see the site!
 
+The homepage includes category and publisher filters so shoppers can narrow the game catalog while keeping the result set accessible and keyboard-friendly.
+
 To preview a production build instead:
 
 ```bash
