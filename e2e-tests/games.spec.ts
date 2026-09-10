@@ -118,6 +118,22 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter the game list by category and publisher', async ({ page }) => {
+    await test.step('Open the homepage and apply the filters from the form', async () => {
+      await page.goto('/');
+      await page.getByTestId('category-filter-1').check();
+      await page.getByTestId('publisher-filter').selectOption('1');
+      await page.getByTestId('apply-filters-button').click();
+    });
+
+    await test.step('Verify only matching games remain visible', async () => {
+      const visibleGameCards = page.locator('[data-testid="game-card"]:visible');
+      await expect(visibleGameCards).toHaveCount(1);
+      await expect(visibleGameCards.first()).toContainText('DevOps Dominion');
+      await expect(page.getByTestId('clear-filters-link')).toBeVisible();
+    });
+  });
+
   test('should return a 404 page for a non-existent game', async ({ page }) => {
     let response: Response | null;
 

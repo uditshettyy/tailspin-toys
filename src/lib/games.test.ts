@@ -3,8 +3,10 @@ import { createTestDatabase } from '../../db/test-helpers';
 import { categories, publishers, games } from '../../db/schema';
 import type { Database } from './db';
 import {
+    getAllCategories,
     getAllGames,
     getAllGameIds,
+    getAllPublishers,
     getGameById,
 } from './games';
 
@@ -50,6 +52,39 @@ describe('games data-access helpers', () => {
         const ids = await getAllGameIds(db);
         const all = await getAllGames(db);
         expect(ids).toEqual(all.map((g) => g.id));
+    });
+
+    it('filters games by category and publisher combinations', async () => {
+        const [strategy] = await db.insert(categories).values({ name: 'Strategy', description: 'cat' }).returning({ id: categories.id });
+        const [puzzle] = await db.insert(categories).values({ name: 'Puzzle', description: 'cat' }).returning({ id: categories.id });
+        const [pubOne] = await db.insert(publishers).values({ name: 'Pub One', description: 'pub' }).returning({ id: publishers.id });
+        const [pubTwo] = await db.insert(publishers).values({ name: 'Pub Two', description: 'pub' }).returning({ id: publishers.id });
+
+        await db.insert(games).values([
+            { title: 'Alpha Strategy', description: 'Alpha', starRating: 4.5, categoryId: strategy.id, publisherId: pubOne.id },
+            { title: 'Beta Strategy', description: 'Beta', starRating: 4.0, categoryId: strategy.id, publisherId: pubTwo.id },
+            { title: 'Gamma Puzzle', description: 'Gamma', starRating: 3.8, categoryId: puzzle.id, publisherId: pubOne.id },
+        ]);
+
+        const categoryOnly = await getAllGames(db, { categoryIds: [strategy.id, puzzle.id] });
+        const publisherAndCategory = await getAllGames(db, { categoryIds: [strategy.id], publisherId: pubOne.id });
+
+        expect(categoryOnly.map((game) => game.title)).toEqual(['Alpha Strategy', 'Beta Strategy', 'Gamma Puzzle']);
+        expect(publisherAndCategory.map((game) => game.title)).toEqual(['Alpha Strategy']);
+    });
+
+    it('lists all categories and publishers for filter controls', async () => {
+        await db.insert(categories).values([
+            { name: 'Strategy', description: 'cat' },
+            { name: 'Puzzle', description: 'cat' },
+        ]);
+        await db.insert(publishers).values([
+            { name: 'Pub One', description: 'pub' },
+            { name: 'Pub Two', description: 'pub' },
+        ]);
+
+        expect((await getAllCategories(db)).map((category) => category.name)).toEqual(['Puzzle', 'Strategy']);
+        expect((await getAllPublishers(db)).map((publisher) => publisher.name)).toEqual(['Pub One', 'Pub Two']);
     });
 
     it('fetches a single game by id', async () => {
