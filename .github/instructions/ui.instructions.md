@@ -20,6 +20,12 @@ Refer to technology-specific instruction files:
 
 ## Core Principles
 
+### Comments and Component Documentation
+
+- Comments should explain intent, accessibility reasoning, or a non-obvious design decision — never restate markup, props, or utility classes.
+- Keep comments and documentation synchronized with the component behavior; stale guidance is a defect.
+- Every reusable component must define and document its `Props` interface in the frontmatter. Describe each prop's purpose, requiredness, and meaningful constraints.
+
 ### Testability
 
 - Every interactive element MUST include a `data-testid` attribute
